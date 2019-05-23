@@ -26,14 +26,14 @@ type RadioLocationDto_malformed = { location_: string }
 // ---------------------------------
 
 [<Fact>]
-let ``Create radio profile with POST route /api/radios/{id} returns 200 OK"`` () =
+let ``Create radio profile with POST route /radios/{id} returns 200 OK"`` () =
     // arrange
     use server = new TestServer(createHost())
     use client = server.CreateClient()   
 
     // act
     client
-    |> httpPost<RadioDto> "/api/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] }
+    |> httpPost<RadioDto> "/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] }
 
     // assert
     |> ensureSuccess
@@ -41,40 +41,40 @@ let ``Create radio profile with POST route /api/radios/{id} returns 200 OK"`` ()
     |> shouldContain radioProfileCreatedSucces
 
 [<Fact>]
-let ``Set radio profile missing locations with POST route /api/radios/{id} returns 400 BAD REQUEST"`` () =
+let ``Set radio profile missing locations with POST route /radios/{id} returns 400 BAD REQUEST"`` () =
     // arrange
     use server = new TestServer(createHost())
     use client = server.CreateClient()
 
     // act
     client
-    |> httpPost "/api/radios/1" { alias = "Radio CPH"; allowed_locations = [] } 
+    |> httpPost "/radios/1" { alias = "Radio CPH"; allowed_locations = [] } 
     // assert
     |> isStatus HttpStatusCode.BadRequest
     |> ignore
 
 [<Fact>]
-let ``Set radio profile missing locations field with POST route /api/radios/{id} returns 400 BAD REQUEST"`` () =
+let ``Set radio profile missing locations field with POST route /radios/{id} returns 400 BAD REQUEST"`` () =
     // arrange
     use server = new TestServer(createHost())
     use client = server.CreateClient()
 
     // act
     client
-    |> httpPost "/api/radios/1" { alias = "Radio CPH" }
+    |> httpPost "/radios/1" { alias = "Radio CPH" }
     // assert
     |> isStatus HttpStatusCode.BadRequest
     |> ignore
 
 [<Fact>]
-let ``Set mal-formed radio profile with POST route /api/radios/{id} returns 400 BAD REQUEST"`` () =
+let ``Set mal-formed radio profile with POST route /radios/{id} returns 400 BAD REQUEST"`` () =
     // arrange
     use server = new TestServer(createHost())
     use client = server.CreateClient()
 
     // act
     client
-    |> httpPost "/api/radios/1" { alias_ = "Radio CPH"; allowed_locations_ = ["CPH-1"; "CPH-2"] } 
+    |> httpPost "/radios/1" { alias_ = "Radio CPH"; allowed_locations_ = ["CPH-1"; "CPH-2"] } 
     // assert
     |> isStatus HttpStatusCode.BadRequest
     |> ignore
@@ -84,18 +84,18 @@ let ``Set mal-formed radio profile with POST route /api/radios/{id} returns 400 
 // ---------------------------------
 
 [<Fact>]
-let ``Set radio location with POST route /api/radios/{id}/location returns 200 OK"`` () =
+let ``Set radio location with POST route /radios/{id}/location returns 200 OK"`` () =
     // arrange
     use server = new TestServer(createHost())
     use client = server.CreateClient()
 
     client
-    |> httpPost "/api/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
+    |> httpPost "/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
     |> ignore
 
     // act
     client
-    |> httpPost "/api/radios/1/location" { location = "CPH-1" }
+    |> httpPost "/radios/1/location" { location = "CPH-1" }
 
     // assert
     |> ensureSuccess
@@ -103,18 +103,18 @@ let ``Set radio location with POST route /api/radios/{id}/location returns 200 O
     |> shouldEqual locationSetSucces
 
 [<Fact>]
-let ``Set radio location for non-existing profile with POST route /api/radios/{id}/location returns 404 NOT FOUND"`` () =
+let ``Set radio location for non-existing profile with POST route /radios/{id}/location returns 404 NOT FOUND"`` () =
     // arrange
     use server = new TestServer(createHost())
     use client = server.CreateClient()
 
     client
-    |> httpPost "/api/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
+    |> httpPost "/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
     |> ignore
 
     // act
     client
-    |> httpPost "/api/radios/2/location" { location = "CPH-1" }
+    |> httpPost "/radios/2/location" { location = "CPH-1" }
 
     // assert
     |> isStatus HttpStatusCode.NotFound
@@ -122,18 +122,18 @@ let ``Set radio location for non-existing profile with POST route /api/radios/{i
     |> shouldEqual radioIdNotFound
 
 [<Fact>]
-let ``Set non-existing radio location with POST route /api/radios/{id}/location returns 403 FORBIDDEN"`` () =
+let ``Set non-existing radio location with POST route /radios/{id}/location returns 403 FORBIDDEN"`` () =
     // arrange
     use server = new TestServer(createHost())
     use client = server.CreateClient()
 
     client
-    |> httpPost "/api/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
+    |> httpPost "/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
     |> ignore   
 
     // act
     client
-    |> httpPost "/api/radios/1/location" { location = "NOT ALLOWED" }
+    |> httpPost "/radios/1/location" { location = "NOT ALLOWED" }
 
     // assert
     |> isStatus HttpStatusCode.Forbidden
@@ -141,25 +141,25 @@ let ``Set non-existing radio location with POST route /api/radios/{id}/location 
     |> shouldEqual locationSetForbiddenRequest
 
 [<Fact>]
-let ``Set mal-formed radio location with POST route /api/radios/{id}/location returns 400 BAD REQUEST"`` () =
+let ``Set mal-formed radio location with POST route /radios/{id}/location returns 400 BAD REQUEST"`` () =
     // arrange
     use server = new TestServer(createHost())
     use client = server.CreateClient()
     
     client
-    |> httpPost "/api/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
+    |> httpPost "/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
     |> ignore
 
     // act
     client
-    |> httpPost "/api/radios/1/location" { location_ = "CPH-1" }
+    |> httpPost "/radios/1/location" { location_ = "CPH-1" }
 
     // assert
     |> isStatus HttpStatusCode.BadRequest
     |> ignore
 
 [<Fact>]
-let ``Get radio location with route /api/radios/{id}/location returns 200 OK and valid JSON"`` () =
+let ``Get radio location with route /radios/{id}/location returns 200 OK and valid JSON"`` () =
     // arrange
     use server = new TestServer(createHost())
     use client = server.CreateClient()
@@ -167,16 +167,16 @@ let ``Get radio location with route /api/radios/{id}/location returns 200 OK and
     let locationDto = { location = "CPH-1" }
 
     client
-    |> httpPost "/api/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
+    |> httpPost "/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
     |> ignore
     
     client
-    |> httpPost "/api/radios/1/location" locationDto 
+    |> httpPost "/radios/1/location" locationDto 
     |> ignore
 
     // act
     client
-    |> httpGet "/api/radios/1/location"
+    |> httpGet "/radios/1/location"
 
     // assert
     |> ensureSuccess
@@ -184,18 +184,18 @@ let ``Get radio location with route /api/radios/{id}/location returns 200 OK and
     |> shouldEqual locationDto
 
 [<Fact>]
-let ``Get radio with non-existing location with route /api/radios/{id}/location returns 404 NOT FOUND"`` () =
+let ``Get radio with non-existing location with route /radios/{id}/location returns 404 NOT FOUND"`` () =
     // arrange
     use server = new TestServer(createHost())
     use client = server.CreateClient()
 
     client
-    |> httpPost "/api/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
+    |> httpPost "/radios/1" { alias = "Radio CPH"; allowed_locations = ["CPH-1"; "CPH-2"] } 
     |> ignore
 
     // act
     client
-    |> httpGet "/api/radios/1/location"
+    |> httpGet "/radios/1/location"
 
     // assert
     |> isStatus HttpStatusCode.NotFound
@@ -229,38 +229,38 @@ let ``SCENARIO 1`` () =
 
     // act
     client
-    |> httpPost "/api/radios/100" { alias = "Radio100"; allowed_locations = ["CPH-1"; "CPH-2"] }
+    |> httpPost "/radios/100" { alias = "Radio100"; allowed_locations = ["CPH-1"; "CPH-2"] }
     |> ensureSuccess
     |> ignore
 
     client
-    |> httpPost "/api/radios/101" { alias = "Radio101"; allowed_locations = ["CPH-1"; "CPH-2"; "CPH-3"] }
+    |> httpPost "/radios/101" { alias = "Radio101"; allowed_locations = ["CPH-1"; "CPH-2"; "CPH-3"] }
     |> ensureSuccess
     |> ignore
 
     client
-    |> httpPost "/api/radios/100/location" { location = "CPH-1" }
+    |> httpPost "/radios/100/location" { location = "CPH-1" }
     |> ensureSuccess
     |> ignore
 
     client
-    |> httpPost "/api/radios/101/location" { location = "CPH-3" }
+    |> httpPost "/radios/101/location" { location = "CPH-3" }
     |> ensureSuccess
     |> ignore
 
     client
-    |> httpPost "/api/radios/100/location" { location = "CPH-3" }
+    |> httpPost "/radios/100/location" { location = "CPH-3" }
     |> isStatus HttpStatusCode.Forbidden
     |> ignore
 
     client
-    |> httpGet "/api/radios/100/location"
+    |> httpGet "/radios/100/location"
     |> ensureSuccess
     |> readJson
     |> shouldEqual { location = "CPH-1" }
 
     client
-    |> httpGet "/api/radios/101/location"
+    |> httpGet "/radios/101/location"
     |> ensureSuccess
     |> readJson
     |> shouldEqual { location = "CPH-3" }
@@ -277,11 +277,11 @@ let ``SCENARIO 2`` () =
 
     // act
     client
-    |> httpPost "/api/radios/102" { alias = "Radio102"; allowed_locations = ["CPH-1"; "CPH-3"] }
+    |> httpPost "/radios/102" { alias = "Radio102"; allowed_locations = ["CPH-1"; "CPH-3"] }
     |> ensureSuccess
     |> ignore
 
     client
-    |> httpGet "/api/radios/102/location"
+    |> httpGet "/radios/102/location"
     |> isStatus HttpStatusCode.NotFound
     |> ignore

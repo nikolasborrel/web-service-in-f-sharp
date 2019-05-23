@@ -27,7 +27,6 @@ docker run --publish 8000:5000 --rm radio-device-ws
 Go to the root directory `RadioDeviceService/`. To run:
 ```bash
 docker build -t radio-device-ws-tests:latest .
-docker run --rm radio-device-ws
 ```
 
 ### Local machine (non-Docker)
