@@ -21,21 +21,20 @@ module HttpHandlers =
 
     let radioIdNotFound = 
         (setStatusCode StatusCodes.Status404NotFound >=> text "404 NOT FOUND (No radio with id)\n")
-
-
-
+        
     // ---------------------------------
     // handleGetRadioLocation
     // ---------------------------------
 
-    let handleGetRadioLocation' (radio : Radio) next ctx =
-        match radio.location with
-        | Some location ->  
-            let locationDto = { location = location }
-            json locationDto next ctx
-         | None -> locationNotFoundRequest next ctx
+    let handleGetRadioLocation' (radio : Radio) =
+        fun (next : HttpFunc) (ctx : HttpContext) ->
+            match radio.location with
+            | Some location ->  
+                let locationDto = { location = location }
+                json locationDto next ctx
+            | None -> locationNotFoundRequest next ctx
 
-    let handleGetRadioLocation (id) =
+    let handleGetRadioLocation (id : RadioID) =
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
                 match (getRadio id) with
@@ -47,28 +46,40 @@ module HttpHandlers =
     // handlePostRadio
     // ---------------------------------
 
-    let handlePostRadio' id (radioDto : RadioDto) =
+    let handlePostRadio' (id : RadioID) (radioDto : RadioDto) =
+        fun (next : HttpFunc) (ctx : HttpContext) ->
+            addRadio id radioDto
+            radioProfileCreatedSucces next ctx
+
+    let handlePostRadio (id : RadioID) =
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
-                addRadio id radioDto
-                return! radioProfileCreatedSucces next ctx
-            }
 
-    let handlePostRadio id =   
-            bindJson<RadioDto> (validateModel (handlePostRadio' id))
+                // To ease the understanding of bindJson, note that:
+                //
+                // validateModel : RadioDto -> HttpHandler -> 'T -> HttpHandler
+                //
+                // where
+                //
+                // HttpHandler : HttpFunc -> HttpFunc
+                // HttpFunc : HttpContext -> HttpFuncResult
+
+                return! bindJson<RadioDto> (validateModel (handlePostRadio' id)) next ctx
+            }
 
     // ---------------------------------
     // handlePostRadioLocation
     // ---------------------------------
 
-    let handlePostRadioLocation' id (locationDto : RadioLocationDto) =
+    let handlePostRadioLocation' (id : RadioID) (locationDto : RadioLocationDto) =
+        fun (next : HttpFunc) (ctx : HttpContext) ->
+            match (addRadioLocation id locationDto.location) with
+                | Failure RadioNotFound ->  radioIdNotFound next ctx
+                | Failure RadioLocationForbidden ->  locationSetForbiddenRequest next ctx
+                | Ok -> locationSetSucces next ctx
+
+    let handlePostRadioLocation (id : RadioID) =
         fun (next : HttpFunc) (ctx : HttpContext) ->
             task {
-                match (addRadioLocation id locationDto.location) with
-                    | Failure RadioNotFound ->  return! radioIdNotFound next ctx
-                    | Failure RadioLocationForbidden ->  return! locationSetForbiddenRequest next ctx
-                    | Ok -> return! locationSetSucces next ctx
+                return! bindJson<RadioLocationDto> (validateModel (handlePostRadioLocation' id)) next ctx
             }
-
-    let handlePostRadioLocation id =   
-            bindJson<RadioLocationDto> (validateModel (handlePostRadioLocation' id))
